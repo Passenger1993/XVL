@@ -1,0 +1,279 @@
+# ============================================
+# ПРОЕКТ-SPECIFIC: XVL - X-Ray Vision Lab
+# ============================================
+
+# 1. ДАННЫЕ и АРТЕФАКТЫ МОДЕЛЕЙ (НИКОГДА В ГИТ!)
+# ============================================
+data/                   # Вся сгенерированная/скачанная data
+datasets/              # Альтернативное название
+models/*.pt            # Веса моделей PyTorch
+models/*.pth           #
+models/*.bin           # Веса в других форматах
+models/*.onnx          # Экспортированные модели ONNX
+models/*.engine        # TensorRT engines
+models/checkpoints/    # Папка с чекпоинтами (если отдельная)
+!models/README.md      # ИСКЛЮЧЕНИЕ: README про модели можно хранить
+
+# 2. ЛОГИ и РЕЗУЛЬТАТЫ ЭКСПЕРИМЕНТОВ
+# ============================================
+logs/                  # ВСЕ логи (тренировка, инференс, ошибки)
+*.log                  # Лог-файлы в корне
+*.log.*                # Rotated logs
+*.jsonl                # JSON Lines логи
+tensorboard/           # TensorBoard логи
+mlruns/                # MLflow эксперименты
+wandb/                 # Weights & Biases
+results/               # Папка для результатов инференса (может быть большой)
+predictions/           # Альтернативная папка предсказаний
+outputs/               # Выходные данные тренировки (если генерируются)
+experiments/           # Директория экспериментов с артефактами
+
+# 3. PYTHON и ВИРТУАЛЬНЫЕ ОКРУЖЕНИЯ
+# ============================================
+# Виртуальные окружения
+venv/
+.venv/
+env/
+.env/
+.env*/
+venv*/
+env*/
+ENV/
+
+# Байт-код и кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# pip и pyenv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+.python-version
+
+# 4. IDE и РЕДАКТОРЫ
+# ============================================
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Other
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+.ropeproject/
+
+# 5. СИСТЕМНЫЕ и ВРЕМЕННЫЕ ФАЙЛЫ
+# ============================================
+# ОС
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Временные файлы
+*.tmp
+*.temp
+*.bak
+.cache/
+temp/
+tmp/
+
+# 6. ДОКУМЕНТАЦИЯ и БИЛДЫ
+# ============================================
+_site/
+.jekyll-metadata
+.sass-cache/
+_sass/.sass-cache/
+*.gem
+.bundle/
+Gemfile.lock
+_site
+docs/_build/
+docs/_static/
+docs/_templates/
+site/
+
+# 7. КОНФИГУРАЦИОННЫЕ ФАЙЛЫ (содержащие секреты)
+# ============================================
+# Локальные копии конфигов с секретами
+configs/local*.yaml
+configs/*.local.yaml
+configs/secrets*.yaml
+*.env
+.env.local
+.env.*.local
+
+# API ключи и токены
+*.key
+*.pem
+*.crt
+*.pub
+*.secret
+
+# 8. ДАННЫЕ В ФОРМАТАХ ИЗОБРАЖЕНИЙ (кроме examples/)
+# ============================================
+# Исходные и сгенерированные изображения
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.tiff
+*.tif
+
+# ИСКЛЮЧЕНИЯ: примеры для портфолио
+!examples/inputs/*.jpg
+!examples/inputs/*.png
+!examples/outputs/*.jpg
+!examples/outputs/*.png
+
+# Векторные изображения и другие медиа
+*.svg
+*.gif
+*.mp4
+*.avi
+*.mov
+
+# 9. ДАННЫЕ В ДРУГИХ ФОРМАТАХ
+# ============================================
+*.csv
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.pkl
+*.pickle
+*.feather
+*.parquet
+*.parq
+*.xml
+*.json  # Исключая конфиги!
+
+# 10. DVC и ВЕРСИОНИРОВАНИЕ ДАННЫХ
+# ============================================
+.dvc/
+.dvcignore
+.dvc/tmp
+.dvc/cache
+
+# 11. DOCKER
+# ============================================
+docker-compose.override.yml
+*.dockerignore
+
+# 12. ПРЕДКОММИЛЫ (pre-commit)
+# ============================================
+.pre-commit-config.yaml
+
+# 13. ГЕНЕРИРУЕМЫЕ ФАЙЛЫ ОТ ПАКЕТНЫХ МЕНЕДЖЕРОВ
+# ============================================
+# pip
+pip-wheel-metadata/
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# ============================================
+# КРИТИЧНЫЕ ИСКЛЮЧЕНИЯ (что ДОЛЖНО быть в репозитории)
+# ============================================
+
+# Конфигурационные файлы проекта (без секретов)
+!configs/training.yaml
+!configs/logging.yaml
+!configs/data.yaml
+!pyproject.toml
+!setup.py
+!setup.cfg
+!requirements*.txt
+!environment.yml
+!Dockerfile
+!docker-compose.yml
+!Makefile
+
+# Исходный код
+!src/**/*.py
+
+# Скрипты
+!scripts/*.py
+
+# Ноутбуки (только демо и EDA, не обучение!)
+!notebooks/demo.ipynb
+!notebooks/eda.ipynb
+
+# Документация
+!docs/**/*.md
+!docs/**/*.rst
+!*.md
+!LICENSE
+!README.md
+!CONTRIBUTING.md
+
+# Примеры для портфолио (ограниченный набор)
+examples/inputs/      # Только README и несколько файлов
+!examples/inputs/README.md
+!examples/inputs/example_*.jpg  # Шаблон для примеров
+examples/outputs/
+!examples/outputs/README.md
+
+# Конфигурации линтеров/форматеров (если используются)
+!.flake8
+!.pre-commit-config.yaml
+!.editorconfig
+
+# GitHub Actions
+!.github/workflows/*.yml
