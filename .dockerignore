@@ -1,0 +1,138 @@
+# ============================================
+# DOCKER-IGNORE: X-RAY VISION LAB
+# Цель: минимальный образ (<500MB) для инференса
+# ============================================
+
+# 1. Содержимое .gitignore
+# ============================================
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+
+# 2. ИСХОДНЫЙ КОД и КОНФИГИ (БУДУТ ИСКЛЮЧЕНЫ ВЫБОРОЧНО)
+# ============================================
+# Исходный код (будем копировать только нужное через Dockerfile)
+src/*
+
+# Но ИСКЛЮЧАЕМ эти папки src:
+src/trainer/           # Код обучения не нужен в продакшен-образе
+src/data/generators/   # Генераторы не нужны для инференса
+src/utils/error_handler.py  # Утилиты разработки
+
+# Конфиги (оставим только минимальный config.yaml)
+configs/*
+!configs/inference.yaml  # Только конфиг для инференса
+
+# Скрипты (оставим только для запуска)
+scripts/*
+!scripts/download_model.py  # Для скачивания модели при запуске
+!scripts/start.sh           # Скрипт запуска
+
+# Ноутбуки и документация
+notebooks/
+docs/
+*.md
+!README.md                  # Только основной README
+LICENSE
+
+# 3. ДАННЫЕ и МОДЕЛИ (СКАЧИВАЕМ ПРИ ЗАПУСКЕ)
+# ============================================
+data/                       # Все данные
+datasets/                  #
+models/                    # Модели скачаем при запуске
+examples/                  # Демо-примеры не нужны в образе
+logs/                      # Логи смонтируем как volume
+results/                   # Результаты будут в volume
+experiments/               # Эксперименты
+outputs/                   #
+
+# 4. ПАЙТОН ОКРУЖЕНИЕ и КЭШ
+# ============================================
+# Виртуальные окружения
+venv/
+.venv/
+env/
+*.venv/
+venv*/
+
+# Байт-код, кэш и сборки
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+.pytest_cache/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# pip кэш
+pip-wheel-metadata/
+
+# 5. СИСТЕМНЫЕ ФАЙЛЫ
+# ============================================
+.DS_Store
+.dockerignore
+Thumbs.db
+desktop.ini
+*.tmp
+*.temp
+*.bak
+temp/
+tmp/
+
+# 6. IDE и РЕДАКТОРЫ
+# ============================================
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# 7. ТЕСТЫ (не нужны в продакшен-образе)
+# ============================================
+tests/
+test/
+testing/
+*test*.py
+*_test.py
+
+# 8. DOCKER ФАЙЛЫ
+# ============================================
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+.docker/
+
+# 9. МЕДИА и БИНАРНИКИ
+# ============================================
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.mp4
+*.avi
+*.mov
+*.pdf
+*.zip
+*.tar
+*.gz
+
+# 10. ЛОГИ (в образе, но пишем в volume)
+# ============================================
+*.log
+*.log.*
+*.jsonl
+tensorboard/
+wandb/
+mlruns/
