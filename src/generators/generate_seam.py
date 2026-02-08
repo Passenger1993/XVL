@@ -66,7 +66,7 @@ def apply_lighting_gradient(image, angle_degrees, intensity):
             gradient.putpixel((x, y), brightness)
 
     # Применяем градиент к изображению с помощью screen (осветление)
-    result = ImageChops.screen(image, gradient)
+    result = ImageChops.multiply(image, gradient)
 
     return result
 
@@ -669,10 +669,10 @@ def draw_a_seam(pattern_size=random.randint(15, 30), overlap_ratio=random.randin
         light_angle = random.uniform(0, 360)  # случайный угол от 0 до 360 градусов
 
     if light_intensity is None:
-        light_intensity = random.uniform(0.1, 0.4)  # случайная интенсивность от 0.2 до 0.8
+        light_intensity = random.uniform(0.1, 0.2)  # случайная интенсивность от 0.2 до 0.8
 
-    gray = random.randint(10, 130)
-    sharpness = random.randint(15, 90)
+    gray = random.randint(10, 50)
+    sharpness = random.randint(20, 90)
     start_point = 0
     end_point = 0
 
@@ -704,7 +704,7 @@ def draw_a_seam(pattern_size=random.randint(15, 30), overlap_ratio=random.randin
         center_x = random.randint(0, width)
         center_y = random.randint(0, height)
         spot_radius = random.randint(40, 200)
-        max_darkness = random.randint(10, 20)
+        max_darkness = random.randint(30, 50)
 
         for r in range(spot_radius, 0, -1):
             darkness = int(max_darkness * (1 - r / spot_radius) * (1 - r / spot_radius))
@@ -821,10 +821,6 @@ def draw_a_seam(pattern_size=random.randint(15, 30), overlap_ratio=random.randin
 
         start_point = start_point1
         end_point = end_point1
-
-        # Вычисляем вектор между начальной и конечной точками (большая ось)
-        dx = abs(end_point[0] - start_point[0] + pattern_size)
-        dy = abs(end_point[1] - start_point[1] + pattern_size)
 
         centers = []
         for i in range(n1):

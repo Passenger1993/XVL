@@ -5,18 +5,18 @@ from typing import List, Tuple, Dict
 import datetime
 import json
 from tqdm import tqdm
-from generate_seam import draw_a_seam
+from src.generators.generate_seam import draw_a_seam
 import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 
-def draw_variable_thickness_line(draw, start_point, end_point, mean_thickness, defect_sharpness=1.0):
+def draw_variable_thickness_line(draw, start_point, end_point, mean_thickness, defect_sharpness=1.0, color = 0):
     """
     Рисует линию с плавно меняющейся толщиной.
     """
-    num_segments = 20
-    start_thickness = random.uniform(0.8 * mean_thickness, 1.2 * mean_thickness)
-    end_thickness = random.uniform(0.8 * mean_thickness, 1.2 * mean_thickness)
+    num_segments = 40
+    start_thickness = random.uniform(0.7 * mean_thickness, 1.4 * mean_thickness)
+    end_thickness = random.uniform(0.7 * mean_thickness, 1.4 * mean_thickness)
 
     for i in range(num_segments):
         t1 = i / num_segments
@@ -34,9 +34,9 @@ def draw_variable_thickness_line(draw, start_point, end_point, mean_thickness, d
         t_mid = (t1 + t2) / 2
         thickness = start_thickness + t_mid * (end_thickness - start_thickness)
 
-        draw.line([seg_start, seg_end], fill=0, width=int(round(thickness)))
+        draw.line([seg_start, seg_end], fill=color, width=int(round(thickness)))
 
-def draw_tapering_crack_line(draw, start_point, end_point, mean_thickness, is_dead_end=False):
+def draw_tapering_crack_line(draw, start_point, end_point, mean_thickness, is_dead_end=False, color = 0):
     """
     Рисует линию трещины с плавным сужением к концу (для тупиковых ветвей).
     """
@@ -48,9 +48,9 @@ def draw_tapering_crack_line(draw, start_point, end_point, mean_thickness, is_de
             t1 = i / num_segments
             t2 = (i + 1) / num_segments
 
-            thickness_factor = 1 - (i / num_segments) * 0.8
+            thickness_factor = 1 - (i / num_segments) * 0.4
             current_thickness = max(1, mean_thickness * thickness_factor)
-            current_thickness *= random.uniform(0.9, 1.1)
+            current_thickness *= random.uniform(0.3, 1.1)
 
             seg_start = (
                 start_point[0] + t1 * (end_point[0] - start_point[0]),
@@ -61,9 +61,9 @@ def draw_tapering_crack_line(draw, start_point, end_point, mean_thickness, is_de
                 start_point[1] + t2 * (end_point[1] - start_point[1])
             )
 
-            draw.line([seg_start, seg_end], fill=0, width=int(round(current_thickness)))
+            draw.line([seg_start, seg_end], fill=color, width=int(round(current_thickness)))
     else:
-        draw_variable_thickness_line(draw, start_point, end_point, mean_thickness)
+        draw_variable_thickness_line(draw, start_point, end_point, mean_thickness, color = color)
 
 def get_local_direction(centers, point_index, window_size=5):
     """
@@ -93,7 +93,7 @@ def get_local_direction(centers, point_index, window_size=5):
 
     return angle
 
-def draw_crack_branch(draw, start_point, angle, thickness, remaining_thicknesses, crack_type, is_main_branch=False, bbox=None):
+def draw_crack_branch(draw, start_point, angle, thickness, remaining_thicknesses, crack_type, is_main_branch=False, bbox=None, color = 0):
     """
     Рекурсивная функция для рисования ветви трещины.
     """
@@ -102,9 +102,9 @@ def draw_crack_branch(draw, start_point, angle, thickness, remaining_thicknesses
 
     # Определяем длину сегмента
     if is_main_branch:
-        length = random.randint(40, 80)
-    else:
         length = random.randint(20, 60)
+    else:
+        length = random.randint(10, 30)
 
     end_x = start_point[0] + length * math.cos(angle)
     end_y = start_point[1] + length * math.sin(angle)
@@ -120,7 +120,7 @@ def draw_crack_branch(draw, start_point, angle, thickness, remaining_thicknesses
     is_dead_end = not remaining_thicknesses
 
     # Рисуем сегмент трещины
-    draw_tapering_crack_line(draw, start_point, end_point, thickness, is_dead_end)
+    draw_tapering_crack_line(draw, start_point, end_point, thickness, is_dead_end, color)
 
     # ДОБАВЛЯЕМ ОБРАБОТКУ ДЛЯ "Single" ТИПА
     if remaining_thicknesses:
@@ -134,7 +134,7 @@ def draw_crack_branch(draw, start_point, angle, thickness, remaining_thicknesses
             next_angle = angle + deviation
 
             draw_crack_branch(draw, end_point, next_angle, next_thickness,
-                             next_remaining, crack_type, is_main_branch=True, bbox=bbox)
+                             next_remaining, crack_type, is_main_branch=True, bbox=bbox, color=color)
 
         if crack_type == "shattered":
             # Исправлено: гарантируем, что min <= max
@@ -161,7 +161,7 @@ def draw_crack_branch(draw, start_point, angle, thickness, remaining_thicknesses
             # Рисуем все ответвления как равнозначные
             for i in range(num_branches):
                 draw_crack_branch(draw, end_point, angles[i], branches_thicknesses[i],
-                                 next_remaining, crack_type, is_main_branch=False, bbox=bbox)
+                                 next_remaining, crack_type, is_main_branch=False, bbox=bbox, color = color)
 
         # Для древовидного типа (как раньше)
         elif crack_type == "tree":
@@ -198,7 +198,7 @@ def draw_crack_branch(draw, start_point, angle, thickness, remaining_thicknesses
                     is_continue = (i == continue_index)
                     draw_crack_branch(draw, end_point, angles[i], branches_thicknesses[i],
                                      next_remaining if is_continue else [], crack_type,
-                                     is_continue, bbox)
+                                     is_continue, bbox, color = color)
 
 
     return bbox
@@ -211,14 +211,14 @@ def draw_transverse_crack_type(draw, centers, pattern_size):
     if not centers or len(centers) < 10:
         return []
 
-    # Генерируем случайное количество трещин (от 1 до 4)
-    num_cracks = random.randint(1, 4)
+    # Генерируем случайное количество трещин (от 1 до 3)
+    num_cracks = random.randint(1, 3)
 
     cracks_data = []
 
     for i in range(num_cracks):
         # Выбираем случайную точку на шве (избегаем краев)
-        point_index = random.randint(5, len(centers) - 6)
+        point_index = random.randint(3, len(centers) - 6)
         center_point = centers[point_index]
 
         # Вычисляем локальное направление шва в этой точке
@@ -246,7 +246,7 @@ def draw_transverse_crack_type(draw, centers, pattern_size):
         )
 
         # Рисуем поперечную трещину
-        draw.line([start_point, end_point], fill=0, width=thickness)
+        draw.line([start_point, end_point], fill=random.randint(0,10), width=thickness)
 
         # Создаем bounding box для этой трещины с отступами
         min_x = min(start_point[0], end_point[0]) - pattern_size
@@ -269,18 +269,22 @@ def make_a_crack(crack_type=random.choice(["single", "tree", "shattered", "trans
     """
     Рисует трещину на изображении с заданными параметрами ветвления.
     """
+    color = random.randint(10,30)
     # ИСПРАВЛЕННАЯ генерация толщин для разных типов трещин
     if crack_type == "single":
         # Для одиночной трещины - больше сегментов для большей длины
         num_segments = random.randint(4, 8)  # Увеличиваем количество сегментов
-        divisions = [random.randint(3, 6) for i in range(num_segments)]
+        divisions = [random.randint(1, 3) for i in range(num_segments)]
     elif crack_type == "shattered":
-        divisions = [random.randint(2, 5) for i in range(random.randint(4, 5))]
+        num_segments = random.randint(4, 5)
+        divisions = [random.randint(1, 4) for i in range(num_segments)]
     elif crack_type == "transverse":
         # Для поперечных трещин толщина не используется в том же смысле
-        divisions = [random.randint(1, 3) for i in range(random.randint(1, 3))]
+        num_segments = random.randint(1, 3)
+        divisions = [random.randint(1, 3) for i in range(num_segments)]
     else:  # tree
-        divisions = [random.randint(1, 5) for i in range(random.randint(3, 5))]
+        num_segments = random.randint(2, 4)
+        divisions = [random.randint(1, 4) for i in range(num_segments)]
 
     divisions_sorted = sorted(divisions, reverse=True)
 
@@ -328,11 +332,11 @@ def make_a_crack(crack_type=random.choice(["single", "tree", "shattered", "trans
         if divisions_sorted:
             # Первое направление
             bbox1 = draw_crack_branch(draw, (start_x, start_y), base_angle, divisions_sorted[0],
-                                     divisions_sorted[1:], crack_type, is_main_branch=True)
+                                     divisions_sorted[1:], crack_type, is_main_branch=True, color = color)
 
             # Второе направление (противоположное)
             bbox2 = draw_crack_branch(draw, (start_x, start_y), base_angle + math.pi, divisions_sorted[0],
-                                     divisions_sorted[1:], crack_type, is_main_branch=True)
+                                     divisions_sorted[1:], crack_type, is_main_branch=True, color = color)
 
             # Объединяем ограничивающие прямоугольники
             combined_bbox = [

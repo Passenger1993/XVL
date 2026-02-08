@@ -2,7 +2,7 @@ from PIL import Image, ImageDraw, ImageFilter
 import random
 import time, datetime
 from tqdm import tqdm
-from generate_seam import draw_a_seam
+from src.generators.generate_seam import draw_a_seam
 import os
 
 def make_empty_seam():

@@ -1,4 +1,15 @@
-# train.py
+"""
+# Обычный режим
+python yolo_trainer.py --config config.yaml --data ./data
+
+# Режим Colab
+python yolo_trainer.py --config config.yaml --data /content/drive/data --colab --base-dir /content
+
+# Возобновление обучения
+python yolo_trainer.py --config config.yaml --data ./data --resume
+"""
+
+# yolo_trainer.py
 import os
 import sys
 import yaml
@@ -9,15 +20,50 @@ from typing import Dict, List, Tuple, Optional, Any
 from dataclasses import dataclass
 import argparse
 import shutil
+from datetime import datetime
 
 import torch
 from ultralytics import YOLO
-
 import cv2
 
 
-# Настройка логирования
-def setup_logging(log_file: str = 'training.log'):
+# ========== КОНФИГУРАЦИЯ ПУТЕЙ ДЛЯ COLAB ==========
+# В Colab пути могут быть разными, поэтому делаем их настраиваемыми
+DEFAULT_PATHS = {
+    'log_dir': './logs/training',
+    'models_dir': './models',
+    'metrics_dir': './metrics',
+    'dataset_dir': './data',
+    'yolo_dataset_dir': './yolo_dataset'
+}
+
+
+def setup_colab_paths(base_path: str = None):
+    """Настройка путей для работы в Colab"""
+    if base_path:
+        base_path = Path(base_path)
+        DEFAULT_PATHS['log_dir'] = str(base_path / 'logs' / 'training')
+        DEFAULT_PATHS['models_dir'] = str(base_path / 'models')
+        DEFAULT_PATHS['metrics_dir'] = str(base_path / 'metrics')
+        DEFAULT_PATHS['dataset_dir'] = str(base_path / 'data')
+        DEFAULT_PATHS['yolo_dataset_dir'] = str(base_path / 'yolo_dataset')
+
+    # Создаем директории если их нет
+    for dir_path in DEFAULT_PATHS.values():
+        Path(dir_path).mkdir(parents=True, exist_ok=True)
+
+
+# ========== НАСТРОЙКА ЛОГГИРОВАНИЯ ==========
+def setup_logging(log_dir: str = None):
+    """Настройка логирования с учетом путей Colab"""
+    if log_dir is None:
+        log_dir = DEFAULT_PATHS['log_dir']
+
+    log_dir = Path(log_dir)
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    log_file = log_dir / f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -28,8 +74,11 @@ def setup_logging(log_file: str = 'training.log'):
     )
     return logging.getLogger(__name__)
 
+
 logger = setup_logging()
 
+
+# ========== КЛАССЫ ДЛЯ КОНФИГУРАЦИИ ==========
 @dataclass
 class TrainingConfig:
     """Конфигурация обучения из YAML файла"""
@@ -49,6 +98,10 @@ class TrainingConfig:
     use_cosine_annealing: bool = True
     warmup_epochs: int = 20
     weight_decay: float = 0.005
+    # Новые поля для управления путями
+    project_dir: str = DEFAULT_PATHS['models_dir']
+    log_dir: str = DEFAULT_PATHS['log_dir']
+    metrics_dir: str = DEFAULT_PATHS['metrics_dir']
 
     def __post_init__(self):
         if self.class_weights is None:
@@ -61,7 +114,7 @@ class ConfigLoader:
     """Загрузчик конфигурации из YAML файла"""
 
     @staticmethod
-    def load_config(config_path: str) -> TrainingConfig:
+    def load_config(config_path: str, base_dir: str = None) -> TrainingConfig:
         """Загрузка конфигурации из YAML файла"""
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
@@ -72,6 +125,13 @@ class ConfigLoader:
             data = config_data.get('data', {})
             augmentation = config_data.get('augmentation', {})
             optimization = config_data.get('optimization', {})
+            paths = config_data.get('paths', {})
+
+            # Определение базовой директории для путей
+            if base_dir:
+                base_path = Path(base_dir)
+            else:
+                base_path = Path.cwd()
 
             return TrainingConfig(
                 img_size=training.get('img_size', 512),
@@ -89,7 +149,10 @@ class ConfigLoader:
                 dropout=augmentation.get('dropout', 0.1),
                 use_cosine_annealing=optimization.get('use_cosine_annealing', True),
                 warmup_epochs=optimization.get('warmup_epochs', 20),
-                weight_decay=optimization.get('weight_decay', 0.005)
+                weight_decay=optimization.get('weight_decay', 0.005),
+                project_dir=str(base_path / paths.get('project_dir', DEFAULT_PATHS['models_dir'])),
+                log_dir=str(base_path / paths.get('log_dir', DEFAULT_PATHS['log_dir'])),
+                metrics_dir=str(base_path / paths.get('metrics_dir', DEFAULT_PATHS['metrics_dir']))
             )
 
         except FileNotFoundError:
@@ -103,6 +166,7 @@ class ConfigLoader:
             raise
 
 
+# ========== КЛАССЫ ДЛЯ ОБРАБОТКИ ДАННЫХ (остаются без изменений) ==========
 class DataConverter:
     """Конвертер аннотаций из JSON в YOLO формат"""
 
@@ -120,7 +184,8 @@ class DataConverter:
         annotation: Dict[str, Any],
         image_path: Path,
         class_names: List[str],
-        output_dir: Path
+        output_dir: Path,
+        logger: logging.Logger
     ) -> bool:
         """
         Конвертирует одну аннотацию в YOLO формат
@@ -318,16 +383,34 @@ class DatasetPreparator:
         }
 
 
+# ========== УЛУЧШЕННЫЙ ТРЕНЕР ДЛЯ COLAB ==========
 class YOLOTrainer:
-    """Тренировочный класс для YOLOv8"""
+    """Тренировочный класс для YOLOv8 с поддержкой Colab"""
 
     def __init__(self, config: TrainingConfig):
         self.config = config
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+        # Определение устройства с приоритетом для Colab
+        if torch.cuda.is_available():
+            self.device = 'cuda'
+        else:
+            self.device = 'cpu'
+
         logger.info(f"Используемое устройство: {self.device}")
+
+        # Создаем директории для сохранения результатов
+        Path(self.config.project_dir).mkdir(parents=True, exist_ok=True)
+        Path(self.config.log_dir).mkdir(parents=True, exist_ok=True)
+        Path(self.config.metrics_dir).mkdir(parents=True, exist_ok=True)
 
     def setup_training_args(self, fold_idx: Optional[int] = None) -> Dict[str, Any]:
         """Настройка аргументов для обучения"""
+        # Формируем имя проекта для удобства в Colab
+        if fold_idx is not None:
+            project_name = f"weld_defects_fold_{fold_idx}"
+        else:
+            project_name = "weld_defects"
+
         args = {
             'data': str(self.dataset_info['yaml_path']),
             'epochs': self.config.epochs,
@@ -336,10 +419,10 @@ class YOLOTrainer:
             'lr0': self.config.learning_rate,
             'device': self.device,
             'save': True,
-            'save_period': 10,  # Сохранять чекпоинт каждые 10 эпох
-            'exist_ok': True,  # Перезаписывать существующие runs
+            'save_period': 10,
+            'exist_ok': True,
             'pretrained': True,
-            'optimizer': 'AdamW',  # Рекомендуемый оптимизатор
+            'optimizer': 'AdamW',
             'weight_decay': self.config.weight_decay,
             'dropout': self.config.dropout,
             'mixup': self.config.mixup,
@@ -347,9 +430,10 @@ class YOLOTrainer:
             'warmup_epochs': self.config.warmup_epochs,
             'cos_lr': self.config.use_cosine_annealing,
             'label_smoothing': 0.1,
-            'patience': 30,  # Early stopping
-            'project': './models',
-            'name': f'weld_defects_fold_{fold_idx}' if fold_idx is not None else 'weld_defects',
+            'patience': 30,
+            'project': self.config.project_dir,  # Используем настраиваемый путь
+            'name': project_name,
+            'verbose': True,  # Добавляем подробный вывод для Colab
         }
 
         # Добавление весов классов если указаны
@@ -435,12 +519,16 @@ class YOLOTrainer:
             logger.info("Запуск обучения на одном наборе данных")
             return self.train_single_fold(resume=resume)
 
+
+# ========== ОСНОВНОЙ ПАЙПЛАЙН ДЛЯ COLAB ==========
 def train_pipeline(
     config_path: str,
     data_dir: str,
     resume: bool = False,
     device: Optional[str] = None,
-    project_name: str = "weld_defects"
+    project_name: str = "weld_defects",
+    base_dir: str = None,  # НОВЫЙ ПАРАМЕТР для указания базовой директории
+    colab_mode: bool = False  # НОВЫЙ ПАРАМЕТР для включения режима Colab
 ) -> Dict[str, Any]:
     """
     Основной пайплайн обучения для использования в Colab и других средах
@@ -451,19 +539,35 @@ def train_pipeline(
         resume: Возобновить обучение с последнего чекпоинта
         device: Устройство для обучения ('cuda', 'cpu' или None для auto)
         project_name: Название проекта для сохранения результатов
+        base_dir: Базовая директория для всех путей (для Colab)
+        colab_mode: Режим работы в Colab (автоматически настраивает пути)
 
     Returns:
         Словарь с результатами обучения
     """
     try:
-        logger.info(f"Запуск обучения с параметрами:")
+        logger.info("=" * 60)
+        logger.info("ЗАПУСК ОБУЧЕНИЯ В COLAB-СОВМЕСТИМОМ РЕЖИМЕ")
+        logger.info("=" * 60)
+
+        # Настройка путей для Colab
+        if colab_mode:
+            logger.info("Включен режим Colab, настраиваем пути...")
+            if base_dir:
+                setup_colab_paths(base_dir)
+            else:
+                setup_colab_paths()
+
+        logger.info(f"Параметры запуска:")
         logger.info(f"  Конфиг: {config_path}")
         logger.info(f"  Данные: {data_dir}")
         logger.info(f"  Resume: {resume}")
         logger.info(f"  Device: {device if device else 'auto'}")
+        logger.info(f"  Base dir: {base_dir if base_dir else 'текущая директория'}")
+        logger.info(f"  Colab mode: {colab_mode}")
 
         # Загрузка конфигурации
-        config = ConfigLoader.load_config(config_path)
+        config = ConfigLoader.load_config(config_path, base_dir)
 
         # Подготовка датасета
         data_base_dir = Path(data_dir)
@@ -480,6 +584,7 @@ def train_pipeline(
         # Переопределение устройства если указано
         if device:
             trainer.device = device
+            logger.info(f"Устройство переопределено на: {device}")
 
         # Запуск обучения
         results = trainer.train(dataset_info, resume=resume)
@@ -489,15 +594,80 @@ def train_pipeline(
             'success': True,
             'config': config.__dict__,
             'results': results,
-            'checkpoint_dir': Path('models/train/checkpoint')
+            'checkpoint_dir': Path(config.project_dir) / project_name,
+            'metrics_dir': Path(config.metrics_dir),
+            'log_dir': Path(config.log_dir),
+            'dataset_info': dataset_info
         }
 
-        logger.info("Обучение успешно завершено!")
+        logger.info("=" * 60)
+        logger.info("ОБУЧЕНИЕ УСПЕШНО ЗАВЕРШЕНО!")
+        logger.info(f"Результаты сохранены в: {output['checkpoint_dir']}")
+        logger.info("=" * 60)
+
         return output
 
     except Exception as e:
-        logger.error(f"Ошибка в пайплайне обучения: {e}")
+        logger.error(f"Ошибка в пайплайне обучения: {e}", exc_info=True)
         return {
             'success': False,
             'error': str(e)
         }
+
+
+# ========== УПРОЩЕННАЯ ФУНКЦИЯ ДЛЯ ИМПОРТА В COLAB ==========
+def colab_train(
+    config_path: str,
+    data_dir: str,
+    base_dir: str = "/content",
+    device: str = "cuda",
+    resume: bool = False
+):
+    """
+    Упрощенная функция для запуска обучения в Google Colab
+
+    Пример использования в Colab:
+    ```
+    from yolo_trainer import colab_train
+
+    result = colab_train(
+        config_path="/content/drive/MyDrive/config.yaml",
+        data_dir="/content/drive/MyDrive/weld_data",
+        base_dir="/content",
+        device="cuda"
+    )
+    ```
+    """
+    return train_pipeline(
+        config_path=config_path,
+        data_dir=data_dir,
+        resume=resume,
+        device=device,
+        base_dir=base_dir,
+        colab_mode=True
+    )
+
+
+# ========== КОМАНДНАЯ СТРОКА ==========
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='YOLOv8 Trainer for Weld Defects')
+    parser.add_argument('--config', type=str, required=True, help='Path to config YAML file')
+    parser.add_argument('--data', type=str, required=True, help='Path to data directory')
+    parser.add_argument('--resume', action='store_true', help='Resume training from checkpoint')
+    parser.add_argument('--device', type=str, choices=['cpu', 'cuda'], help='Device to use')
+    parser.add_argument('--base-dir', type=str, help='Base directory for all paths')
+    parser.add_argument('--colab', action='store_true', help='Enable Colab mode')
+
+    args = parser.parse_args()
+
+    result = train_pipeline(
+        config_path=args.config,
+        data_dir=args.data,
+        resume=args.resume,
+        device=args.device,
+        base_dir=args.base_dir,
+        colab_mode=args.colab
+    )
+
+    if not result['success']:
+        sys.exit(1)
