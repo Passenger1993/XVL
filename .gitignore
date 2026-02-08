@@ -2,6 +2,7 @@
 data/
 models/
 logs/
+generators/
 
 # Виртуальные окружения
 venv/
