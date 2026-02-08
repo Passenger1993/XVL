@@ -2,7 +2,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageChops
 import random
 import math
 import datetime
-from generate_seam import draw_a_seam
+from src.generators.generate_seam import draw_a_seam
 import statistics
 import json
 from tqdm import tqdm

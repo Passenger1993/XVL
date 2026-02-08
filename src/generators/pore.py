@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw, ImageFilter
 import random, datetime
 import math
-from generate_seam import draw_a_seam
+from src.generators.generate_seam import draw_a_seam
 import statistics
 from functools import reduce
 from collections import deque
