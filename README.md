@@ -11,13 +11,13 @@ XVL — X-Ray Vision Lab
 Примеры работы модели на тестовых данных:
 
 Исходный снимок	Результат детекции
-./data/results/case1.png	./data/results/case2.png
+./src/model/inference/case1.png	./src/model/inference/case2.png
 Реальные примеры из папки data/results/ демонстрируют обнаружение дефектов: трещины, поры, непровары.
 
 🚀 Быстрый старт
 1. Клонирование и установка
 bash
-git clone https://github.com/your-username/XVL.git
+git clone https://github.com/Passenger1993/XVL.git
 cd XVL
 pip install -e .
 2. Загрузка весов модели
