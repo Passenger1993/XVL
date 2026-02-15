@@ -1,0 +1,43 @@
+# .github/workflows/docker-test.yml
+name: Docker Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'Dockerfile'
+      - 'requirements.txt'
+      - 'pyproject.toml'
+      - 'tests/test_docker.py'
+  pull_request:
+    branches: [main]
+
+jobs:
+  docker-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Docker
+      run: |
+        docker --version
+
+    - name: Build Docker image
+      run: |
+        docker build -f docker/Dockerfile -t xvl:${{ github.sha }} .
+
+    - name: Run Docker tests
+      run: |
+        # Устанавливаем Python для запуска pytest
+        python -m pip install --upgrade pip
+        pip install pytest pytest-mock
+        
+        # Запускаем тесты Docker
+        SKIP_DOCKER_TESTS=false pytest tests/test_docker.py -v --tb=short -m "not slow"
+
+    - name: Cleanup
+      if: always()
+      run: |
+        docker system prune -f
+        docker rmi xvl:${{ github.sha }} || true

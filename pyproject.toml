@@ -8,25 +8,315 @@ version = "0.1.0"
 description = "X-Ray Vision Lab: анализ сварных швов"
 readme = "README.md"
 requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Ваша команда", email = "team@example.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
 dependencies = [
     "ultralytics>=8.0.0",
     "opencv-python>=4.8.0",
     "numpy>=1.24.0",
     "pillow>=10.0.0",
-    "streamlit>=1.28.0",  # если делаешь веб-интерфейс
+    "PyQt5>=5.15.0",
+    "scipy>=1.7.0",
+    "matplotlib>=3.5.0",
+    "tqdm>=4.62.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
+    "pytest-qt>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.0.0",
+    "pytest-html>=4.0.0",
+    "pytest-benchmark>=4.0.0",
+    "coverage>=7.0.0",
     "black>=23.0.0",
     "flake8>=6.0.0",
+    "flake8-docstrings>=1.7.0",
+    "mypy>=1.0.0",
+    "isort>=5.12.0",
     "pre-commit>=3.0.0",
+    "bandit>=1.7.5",
+    "hypothesis>=6.0.0",
 ]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-username/XVL"
+Repository = "https://github.com/your-username/XVL"
+Bug-Tracker = "https://github.com/your-username/XVL/issues"
+Documentation = "https://github.com/your-username/XVL/wiki"
+
+[project.scripts]
+xvl = "xvl.main:main"
 
 [tool.black]
 line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | tests/fixtures/
+  | tests/mocks/
+)/
+'''
 
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+known_first_party = ["XVL", "src"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+exclude = [
+    '^\.venv/',
+    '^build/',
+    '^dist/',
+    '^tests/fixtures/',
+    '^tests/mocks/',
+]
+[[tool.mypy.overrides]]
+module = [
+    "PyQt5.*",
+    "PyQt5.Qt.*",
+    "cv2",
+    "cv2.*",
+    "ultralytics",
+    "ultralytics.*",
+]
+ignore_missing_imports = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "docs", ".venv"]
+skips = ["B101", "B311", "B403", "B404"]
+
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "tests/*",
+    ".venv/*",
+    "build/*",
+    "dist/*",
+    "docs/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+    "raise NotImplementedError",
+    "def __repr__",
+    "def __str__",
+]
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
+title = "XVL Test Coverage"
+
+# Конфигурация pytest (заменяет pytest.ini)
 [tool.pytest.ini_options]
+# Пути поиска тестов
 testpaths = ["tests"]
-addopts = "-v"
+# Паттерны имен файлов с тестами
+python_files = ["test_*.py", "*_test.py"]
+# Паттерны имен классов с тестами
+python_classes = ["Test*", "*Test"]
+# Паттерны имен функций с тестами
+python_functions = ["test_*", "*_test"]
+# Базовая директория для тестов
+rootdir = "."
+# Опции по умолчанию
+addopts = [
+    "--verbose",
+    "--tb=short",
+    "--strict-markers",
+    "--strict-config",
+    "--disable-warnings",
+    "--color=yes",
+    "--import-mode=append",
+]
+# Фильтр предупреждений
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::FutureWarning",
+    "ignore::UserWarning",
+    "ignore::ResourceWarning",
+    "ignore::pytest.PytestCollectionWarning",
+]
+# Маркеры тестов
+markers = [
+    "unit: модульные тесты",
+    "integration: интеграционные тесты",
+    "gui: тесты графического интерфейса",
+    "slow: медленные тесты",
+    "generator: тесты генераторов изображений",
+    "crack: тесты генерации трещин",
+    "pore: тесты генерации пор",
+    "seam: тесты генерации швов",
+    "fusion: тесты генерации непроваров",
+    "empty: тесты пустых швов",
+    "parametrized: параметризованные тесты",
+    "error: тесты обработки ошибок",
+    "benchmark: тесты производительности",
+    "property: property-based тесты",
+    "requires_gpu: требует GPU",
+    "requires_data: требует тестовых данных",
+    "skip: пропустить тест",
+    "xfail: ожидаемый сбой",
+    "docker: тесты Docker-образа",
+    "docker_build: тесты сборки Docker-образа",
+    "docker_run: тесты запуска Docker-контейнера",
+    "docker_volume: тесты с монтированием томов",
+    "docker_network: тесты сетевых взаимодействий",
+]
+# Игнорируемые директории
+norecursedirs = [
+    ".git",
+    ".venv",
+    "build",
+    "dist",
+    "*.egg-info",
+    "__pycache__",
+    "node_modules",
+]
+# Минимальная версия Python
+minversion = "7.0"
+# Режим выполнения тестов
+xdist_fail_nonempty = false
+# Формат вывода
+console_output_style = "classic"
+# Параллельное выполнение
+# workers = auto  # Раскомментировать для параллельных тестов
+
+# Настройки для отдельных плагинов
+[tool.pytest.ini_options.pytest-xdist]
+# Настройки для параллельных тестов
+addopts = "--numprocesses=auto"
+
+[tool.pytest.ini_options.pytest-cov]
+# Настройки для coverage
+source = ["."]
+omit = ["tests/*", ".venv/*", "build/*", "dist/*"]
+fail_under = 70  # Минимальный процент покрытия
+report_formats = ["term", "html"]
+
+[tool.pytest.ini_options.pytest-html]
+# Настройки для HTML отчета
+title = "XVL Test Report"
+logo = "https://via.placeholder.com/50x50"
+report = "test-report.html"
+
+# Настройки для hypothesis (property-based тестирование)
+[tool.hypothesis]
+# Максимальное количество примеров на тест
+max_examples = 50
+# Таймаут для генерации данных в секундах
+deadline = 0
+# Уровень детализации отчетов
+verbosity = "normal"
+# Фаза для воспроизведения тестов
+phases = ["explicit", "reuse", "generate", "target", "shrink", "explain"]
+# Настройки для stateful тестов
+stateful_step_count = 10
+# Хранение базы данных примеров
+database = {file = ".hypothesis/examples"}
+
+# Настройки для flake8
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [".git", "__pycache__", ".venv", "build", "dist", "*.egg-info"]
+per-file-ignores = [
+    "__init__.py:F401",
+    "tests/*:S101",
+]
+
+# Настройки для docstrings (pydocstyle)
+[tool.pydocstyle]
+convention = "google"
+match = "(?!test_).*\\.py"
+ignore = ["D107", "D203", "D212", "D406", "D407", "D413"]
+
+# Настройки для mypy
+[tool.mypy-pyright]
+python_version = "3.9"
+type_checking_mode = "basic"
+reportMissingImports = true
+reportMissingTypeStubs = false
+pythonPlatform = "Linux"
+
+# Настройки проекта
+[tool.setuptools]
+packages = ["src"]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
+exclude = ["tests*", "docs*"]
+
+# Настройки для тестов Docker
+[tool.pytest.ini_options.docker]
+# Базовый образ для тестирования
+base_image = "python:3.9-slim"
+# Теги для образов
+test_image_tag = "xvl-test:latest"
+production_image_tag = "xvl:latest"
+# Время ожидания для контейнеров (секунды)
+container_timeout = 30
+# Порт для тестирования (если приложение использует порт)
+test_port = 8080
+
+# Настройки безопасности для Docker тестов
+[tool.pytest.ini_options.docker.security]
+# Запускать контейнеры с ограниченными правами
+no_root = true
+# Отключать привилегированные режимы
+no_privileged = true
+# Удалять контейнеры после тестов
+auto_remove = true
+# Использовать read-only файловую систему, где возможно
+read_only = false

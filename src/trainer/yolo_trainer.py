@@ -1,12 +1,12 @@
 """
 # Обычный режим
-python yolo_trainer.py --config config.yaml --data ./data
+python yolo_trainer.py --configs configs.yaml --data ./data
 
 # Режим Colab
-python yolo_trainer.py --config config.yaml --data /content/drive/data --colab --base-dir /content
+python yolo_trainer.py --configs configs.yaml --data /content/drive/data --colab --base-dir /content
 
 # Возобновление обучения
-python yolo_trainer.py --config config.yaml --data ./data --resume
+python yolo_trainer.py --configs configs.yaml --data ./data --resume
 """
 
 # yolo_trainer.py
@@ -592,7 +592,7 @@ def train_pipeline(
         # Сбор результатов
         output = {
             'success': True,
-            'config': config.__dict__,
+            'configs': config.__dict__,
             'results': results,
             'checkpoint_dir': Path(config.project_dir) / project_name,
             'metrics_dir': Path(config.metrics_dir),
@@ -631,7 +631,7 @@ def colab_train(
     from yolo_trainer import colab_train
 
     result = colab_train(
-        config_path="/content/drive/MyDrive/config.yaml",
+        config_path="/content/drive/MyDrive/configs.yaml",
         data_dir="/content/drive/MyDrive/weld_data",
         base_dir="/content",
         device="cuda"
@@ -651,7 +651,7 @@ def colab_train(
 # ========== КОМАНДНАЯ СТРОКА ==========
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='YOLOv8 Trainer for Weld Defects')
-    parser.add_argument('--config', type=str, required=True, help='Path to config YAML file')
+    parser.add_argument('--configs', type=str, required=True, help='Path to configs YAML file', default='model/configs.yaml')
     parser.add_argument('--data', type=str, required=True, help='Path to data directory')
     parser.add_argument('--resume', action='store_true', help='Resume training from checkpoint')
     parser.add_argument('--device', type=str, choices=['cpu', 'cuda'], help='Device to use')
