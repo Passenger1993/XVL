@@ -1,0 +1,42 @@
+# configs.yaml
+training:
+  img_size: 512
+  model_name: "yolov8s.pt"
+  epochs: 150
+  batch_size: 48
+  learning_rate: 0.00005
+  num_folds: 5
+
+data:
+  samples_per_epoch: null
+  val_samples: null
+  class_weights: null
+  class_names:
+    - "incomplete_fusion"
+    - "crack"
+    - "single_pore"
+    - "cluster_pores"
+    - "empty"
+
+# Параметры обучения YOLO
+yolo_args:
+  save: true
+  save_period: 10
+  exist_ok: true
+  pretrained: true
+  optimizer: "AdamW"
+  weight_decay: 0.005
+  dropout: 0.1
+  mixup: 0.05
+  cutmix: 0.05
+  warmup_epochs: 20
+  cos_lr: true
+  label_smoothing: 0.1
+  patience: 30
+  verbose: true
+  # Другие параметры YOLO могут быть добавлены здесь
+
+paths:
+  project_dir: "models"
+  log_dir: "logs/training"
+  metrics_dir: "metrics"

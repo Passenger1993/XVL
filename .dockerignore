@@ -1,40 +1,370 @@
-# Гарантированно исключаем ВСЕ тяжёлые артефакты по шаблону
+# ============================================================================
+# ИСКЛЮЧЕНИЯ ДЛЯ DOCKER СБОРКИ
+# ============================================================================
+
+# ====================
+# 1. МОДЕЛИ И ВЕСА
+# ====================
+# Исключаем все модели машинного обучения и файлы весов
 **/*.pt
 **/*.pth
+**/*.pth.tar
+**/*.onnx
+**/*.pb
 **/*.h5
+**/*.hdf5
+**/*.keras
+**/*.joblib
+**/*.pkl
+**/*.pickle
+**/*.bin
+**/*.ckpt
+**/*.weights
+
+# ====================
+# 2. АРХИВЫ И БОЛЬШИЕ ФАЙЛЫ
+# ====================
 **/*.zip
 **/*.tar
 **/*.tar.gz
-**/*.so
-**/*.pyd
+**/*.tar.bz2
+**/*.tar.xz
+**/*.rar
+**/*.7z
+*.iso
+*.img
+*.vmdk
+*.ova
+*.ovf
 
-# Исключаем все возможные места с данными и кэшами
+# ====================
+# 3. ДАННЫЕ И ДАТАСЕТЫ
+# ====================
+# Все данные, датасеты и промежуточные результаты
 data/
-models/
+datasets/
+raw_data/
+processed_data/
+train_data/
+test_data/
+val_data/
+annotations/
+labels/
+images/
+samples/
+dataset/
+**/dataset/
+**/data/
+
+# Исключаем конкретные подпапки, которые могут быть внутри других директорий
+**/data/
+**/datasets/
+**/images/
+**/samples/
+
+# ====================
+# 4. ЛОГИ И РЕЗУЛЬТАТЫ
+# ====================
 logs/
-notebooks/
+log/
+output/
+outputs/
+results/
+experiments/
+runs/
+checkpoints/
+**/logs/
+**/log/
+**/output/
+**/outputs/
+**/results/
+*.log
+*.log.*
+*.txt
+*.csv
+*.tsv
+*.json
+*.xml
+*.yaml
+*.yml
+
+# ====================
+# 5. КЭШИ И ВРЕМЕННЫЕ ФАЙЛЫ
+# ====================
+# Python кэши
 __pycache__/
 *.py[cod]
-.pytest_cache/
-build/
-dist/
-.ipynb_checkpoints/
+*$py.class
+*.so
+*.pyd
+.python-version
 
-# Среды и системные файлы
+# Pytest и тестовые кэши
+.pytest_cache/
+.mypy_cache/
+.tox/
+.nox/
+.coverage
+coverage.xml
+htmlcov/
+.coverage.*
+.cache/
+
+# Node.js и другие кэши
+node_modules/
+.npm/
+.yarn/
+.yarn-cache/
+
+# ====================
+# 6. ВИРТУАЛЬНЫЕ ОКРУЖЕНИЯ
+# ====================
 venv/
 .venv/
 env/
-.git/
+.env/
+ENV/
+env.bak/
+venv.bak/
+virtualenv/
+.conda/
+conda/
+
+# ====================
+# 7. ИСХОДНЫЙ КОД И СБОРКИ
+# ====================
+# Исключаем папки сборки и дистрибутивы
+build/
+dist/
+*.egg-info/
+*.egg
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.manifest
+*.spec
+
+# ====================
+# 8. СИСТЕМНЫЕ ФАЙЛЫ
+# ====================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+[Tt]humbs.db
+ehthumbs.db
+desktop.ini
+*.lnk
+
+# ====================
+# 9. IDE И РАЗРАБОТКА
+# ====================
 .idea/
 .vscode/
-*.iml
+.vs/
+*.swp
+*.swo
+*~
+*.sublime-*
+.project
+.pydevproject
+.settings/
+*.tmproj
+*.pbxuser
 
-# Служебные файлы Docker (чтобы не копировать самих себя)
-Dockerfile*
+# JetBrains IDE
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.metadata/
+.classpath
+
+# ====================
+# 10. VCS (ВЕРСИОННЫЙ КОНТРОЛЬ)
+# ====================
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+.git-rewrite/
+.git-review
+.svn/
+.hg/
+.bzr/
+.cvs/
+*/.git/
+*/.svn/
+*/.hg/
+*/.bzr/
+
+# ====================
+# 11. DOCKER ФАЙЛЫ
+# ====================
+Dockerfile
+Dockerfile.*
 docker-compose*
 .dockerignore
 .dockerenv
+docker-*.yml
+docker-*.yaml
 
-# Временные файлы ОС
-.DS_Store
-Thumbs.db
+# ====================
+# 12. ДОКУМЕНТАЦИЯ
+# ====================
+docs/
+doc/
+apidocs/
+site/
+_site/
+docs/_build/
+book/
+books/
+*.pdf
+*.epub
+*.mobi
+
+# ====================
+# 13. НОУТБУКИ И АНАЛИЗ
+# ====================
+notebooks/
+.ipynb_checkpoints/
+*.ipynb
+*.Rmd
+*.rmd
+
+# ====================
+# 14. ТЕСТЫ И ФИКСТУРЫ
+# ====================
+# Исключаем тестовые данные и фикстуры (они не нужны в продакшене)
+tests/
+test/
+spec/
+features/
+fixtures/
+test_*.py
+*_test.py
+**/test_*.py
+**/*_test.py
+
+# Но оставляем сами тестовые модули (они могут быть нужны для запуска тестов в CI)
+#!tests/__init__.py
+#!tests/conftest.py
+
+# ====================
+# 15. ПРОФИЛИ И КОНФИГУРАЦИИ
+# ====================
+# Локальные конфигурации
+*.local
+*.local.*
+.env.local
+.env.*.local
+local_settings.py
+local_config.py
+config.local.*
+
+# Конфиги, специфичные для окружения
+**/config/development/
+**/config/staging/
+**/config/testing/
+
+# ====================
+# 16. ПРОЧЕЕ
+# ====================
+# Файлы для pre-commit
+.pre-commit-config.yaml
+
+# Файлы для mypy
+mypy.ini
+
+# Файлы для coverage
+.coveragerc
+
+# Файлы для редактора кода
+.editorconfig
+
+# Файлы для линтеров
+.flake8
+.pylintrc
+
+# Файлы для isort
+.isort.cfg
+
+# Файлы для black
+pyproject.toml  # Но осторожно: в нем могут быть зависимости
+
+# Файлы для setup
+setup.py
+setup.cfg
+requirements*.txt
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# ====================
+# 17. СПЕЦИФИЧНО ДЛЯ ПРОЕКТА XVL
+# ====================
+# Логи генерации
+**/generator_logs/
+**/generation_logs/
+
+# Промежуточные результаты обработки изображений
+**/processed_images/
+**/temp_images/
+**/tmp/
+
+# Модели YOLO (если они скачиваются/генерируются)
+**/yolo_models/
+**/ultralytics/
+
+# Кэши аннотаций
+**/annotations_cache/
+**/annotation_cache/
+
+# Дампы памяти и профилирование
+*.prof
+*.profdata
+*.gcda
+*.gcno
+
+# ====================
+# 18. ВАЖНОЕ ПРИМЕЧАНИЕ
+# ====================
+# Файлы, которые НЕОБХОДИМО включить в образ:
+# !pyproject.toml   # Нужен для установки зависимостей
+# !requirements.txt # Нужен для установки зависимостей
+# !run.py           # Точка входа приложения
+# !src/             # Исходный код приложения
+# !evaluator.py     # Основные модули
+# !manager.py       # Основные модули
+# !zip_packer.py    # Основные модули
+
+# ============================================================================
+# ПРАВИЛА ДЛЯ РАЗНЫХ РЕЖИМОВ:
+# ============================================================================
+
+# Для production:
+# - Исключаем все тесты, документацию, конфиги разработки
+
+# Для development:
+# - Можем включить тесты и документацию, но исключить тяжелые файлы
+
+# Для CI/CD:
+# - Нужны тесты, но не нужны данные и модели
+
+# ============================================================================
+# КОММЕНТАРИЙ ДЛЯ РАЗРАБОТЧИКОВ:
+# ============================================================================
+# 1. Этот файл исключает ВСЕ тяжелые и временные файлы из Docker образа
+# 2. Убедитесь, что все необходимые для работы файлы НЕ исключены
+# 3. Для добавления исключения используйте паттерн с !
+# 4. Паттерны проверяются сверху вниз, первое совпадение определяет действие
