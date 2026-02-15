@@ -25,7 +25,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t xvl:${{ github.sha }} .
+        docker build -f docker/Dockerfile -t xvl:${{ github.sha }} .
 
     - name: Run Docker tests
       run: |
