@@ -17,3 +17,4 @@ matplotlib==3.8.2
 tqdm==4.66.1
 pillow==10.1.0
 pyqt5==5.15
+requests
