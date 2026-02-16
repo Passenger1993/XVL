@@ -20,12 +20,18 @@ bash
 git clone https://github.com/Passenger1993/XVL.git
 cd XVL
 pip install -e .
-2. Загрузка весов модели
+2. Загрузка весов модели и обучающей выборки
 Веса обученной модели (best.pt) доступны на Hugging Face Hub:
 
 bash
 python scripts/download_weights.py
 Скрипт автоматически загрузит веса в src/models/weights/.
+
+Скачать готовый архив обучающих данных можно с моего репозитория в Hugging Face:
+bash
+python scripts/download_dataset.py
+Скрипт автоматически загрузит архив в src/data/train/.
+После чего вы сможете запустить скрипт zip_unpacker.py, который автоматически создаст для вас обучающую, тестовую, и валидационную выборку.
 
 3. Запуск приложения
 bash
@@ -203,7 +209,7 @@ training:
 🔗 Ссылки
 Модель на Hugging Face Hub: huggingface.co/Alex-Watchman/XVL/xvl-model
 
-Датасет на Kaggle: kaggle.com/datasets/your-username/welding-defects
+Датасет на Hugging Face: https://huggingface.co/datasets/Alex-Watchman/XVL_train/blob/main/train.zip
 
 Интерактивное демо: huggingface.co/spaces/Alex-Watchman/xvl-demo
 
