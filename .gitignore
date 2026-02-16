@@ -1,6 +1,7 @@
 # Данные
 data/**
 !data/**/.gitkeep
+!data/training/.gitkeep
 models/
 logs/
 generators/
