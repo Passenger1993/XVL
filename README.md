@@ -1,4 +1,4 @@
-#XVL — X-Ray Vision Lab
+XVL — X-Ray Vision Lab
 
 ![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)
@@ -41,7 +41,7 @@ bash
 
 python scripts/download_dataset.py
 
-Скрипт автоматически загрузит архив в src/data/train/. После чего вы сможете запустить скрипт zip_unpacker.py, который автоматически создаст для вас обучающую, тестовую, и валидационную выборку.
+Скрипт автоматически загрузит архив в src/data/train/. При обучении через блокнот скачивать zip нет необходимости - предусмотрен импорт прямо из HF.
 
 3. Запуск приложения
 
