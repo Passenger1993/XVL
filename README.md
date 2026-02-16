@@ -110,8 +110,6 @@ XVL/
 
 │
 
-├── venv                          # Виртуальная среда
-
 ├── .dockerignore                 # Файлы вне докер-образа
 
 ├── .gitignore                    # Файлы вне гитхаб
@@ -132,44 +130,6 @@ XVL/
 
 
 🐳 Запуск в Docker (с поддержкой GPU)
-
-Использование Docker Compose (рекомендуется)
-yaml
-# docker-compose.yml
-version: '3.8'
-
-services:
-  xvl:
-    build: .
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./data:/app/data
-      - ./models:/app/models
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-bash
-# Сборка и запуск
-docker-compose up -d --build
-
-# Просмотр логов
-docker-compose logs -f
-Прямой запуск через Docker
-bash
-# Сборка образа
-docker build -t xvl-app .
-
-# Запуск с GPU
-docker run -p 8080:8080 \
-  --gpus all \
-  -v $(pwd)/data:/app/data \
-  --name xvl-container \
-  xvl-app
 
 🧪 Тестирование
 Проект покрыт юнит-тестами для ключевых компонентов:
